@@ -16,13 +16,12 @@ Aplikasi frontend modern yang dibangun menggunakan kombinasi **Vite**, **React 1
   - Komponen notifikasi pembaruan otomatis (`ReloadPrompt.tsx`).
 - **Arsitektur Folder Modular**:
   - `components/`: Komponen UI reusable (`common/`, dll.)
-  - `hooks/`: Custom hooks React (contoh: `useNetworkStatus.ts`)
+  - `hooks/`: Custom hooks React (`useNetworkStatus.ts`)
   - `services/`: API client terpusat (`api.ts`)
   - `types/`: Deklarasi tipe TypeScript (`index.ts`)
   - `utils/`: Fungsi utilitas & helper (`formatDate.ts`)
-- **End-to-End (E2E) Testing**: Terintegrasi dengan **Playwright** untuk pengujian alur pengguna dan PWA.
-- **Proxy Integrasi Backend**:
-  - Konfigurasi proxy di `vite.config.ts` untuk meneruskan request `/api` ke backend NestJS (`http://localhost:3000`).
+- **End-to-End (E2E) Testing**: Terintegrasi dengan **Playwright** (`e2e/app.spec.ts`).
+- **Vercel Ready**: File konfigurasi `vercel.json` untuk SPA rewrite routing dan dukungan variabel lingkungan `VITE_API_URL`.
 
 ---
 
@@ -56,12 +55,14 @@ frontend/
 │   ├── main.tsx             # Entry point React DOM
 │   ├── ReloadPrompt.tsx     # Komponen notifikasi update Service Worker
 │   └── vite-env.d.ts        # Deklarasi tipe Vite & PWA Client
+├── .env.example             # Contoh variabel lingkungan
 ├── .gitignore               # Aturan ignore khusus frontend
 ├── index.html               # Template HTML & meta tag PWA
 ├── package.json             # Dependensi & skrip npm
 ├── playwright.config.ts     # Konfigurasi Playwright E2E
 ├── tsconfig.json            # Konfigurasi TypeScript utama
 ├── tsconfig.app.json        # Konfigurasi TypeScript aplikasi
+├── vercel.json              # Konfigurasi deployment Vercel
 └── vite.config.ts           # Konfigurasi Vite & plugin PWA
 ```
 
@@ -74,55 +75,46 @@ frontend/
 
 ---
 
-## 📦 Panduan Menjalankan & Testing
+## 📦 Panduan Menjalankan & Testing Lokal
 
-### 1. Masuk ke Direktori Frontend
+### 1. Masuk ke Direktori Frontend & Instalasi
 ```bash
 cd frontend
-```
-
-### 2. Instal Dependensi
-```bash
 npm install
 ```
 
-### 3. Menjalankan Server Development
+### 2. Menjalankan Server Development
 ```bash
 npm run dev
 ```
 Aplikasi akan aktif di alamat: `http://localhost:5173`.
 
-### 4. Menjalankan End-to-End (E2E) Test
+### 3. Menjalankan End-to-End (E2E) Test
 ```bash
 npm run test:e2e
 ```
-*(Catatan: Saat pertama kali menjalankan Playwright, instal browser via `npx playwright install` bila diperlukan)*.
 
-### 5. Build untuk Produksi
+### 4. Build untuk Produksi
 ```bash
 npm run build
-```
-Hasil build beserta Service Worker (`sw.js`) dan Manifest (`manifest.webmanifest`) akan disimpan di folder `dist/`.
-
-### 6. Menjalankan Preview Hasil Build
-```bash
-npm run preview
 ```
 
 ---
 
-## 📱 Pengujian Fitur PWA (Progressive Web App)
+## ☁️ Panduan Deploy ke Vercel (Terpisah)
 
-1. **Memeriksa Service Worker & Manifest di DevTools**:
-   - Buka aplikasi di Google Chrome / Edge (`http://localhost:5173`).
-   - Tekan `F12` atau klik kanan & pilih **Inspect**.
-   - Buka tab **Application**:
-     - Klik menu **Manifest** untuk melihat nama, warna tema, dan ikon.
-     - Klik menu **Service Workers** untuk melihat status Service Worker yang terdaftar.
+Frontend dapat di-deploy ke Vercel secara independen:
 
-2. **Menguji Mode Offline**:
-   - Pada tab **Application** -> **Service Workers**, centang kotak **Offline** (atau ubah network throttling menjadi *Offline*).
-   - Muat ulang (*refresh*) halaman: aplikasi tetap terbuka dengan status *PWA Offline Mode*.
-
-3. **Instalasi Aplikasi**:
-   - Klik ikon instalasi pada address bar browser untuk memasang aplikasi ke desktop atau home screen mobile.
+1. **Buka Dashboard Vercel**: Masuk ke [vercel.com](https://vercel.com/) dan pilih **Add New > Project**.
+2. **Pilih Repository**: Impor repository `GEN_APHYAH`.
+3. **Atur Root Directory**:
+   - Klik tombol **Edit** di samping *Root Directory*.
+   - Pilih folder **`frontend`**.
+4. **Build & Output Settings**:
+   - **Framework Preset**: `Vite` (terdeteksi otomatis).
+   - **Build Command**: `npm run build`.
+   - **Output Directory**: `dist`.
+5. **Environment Variables**:
+   - Tambahkan variabel:
+     - `VITE_API_URL`: Masukkan URL domain backend Vercel Anda (misal: `https://gen-aphyah-backend.vercel.app`).
+6. **Klik Deploy**: Vercel akan mem-build aplikasi dan menerbitkan URL frontend PWA aktif Anda.

@@ -1,12 +1,12 @@
 # GEN APHYAH - Fullstack Enterprise Starter Project
 
-Proyek fullstack modern dan terstruktur yang menggabungkan frontend berbasis **Vite (React 19 + TypeScript + PWA)** dan backend berbasis **NestJS (TypeScript)** dengan dokumentasi interaktif **Swagger OpenAPI** serta **End-to-End (E2E) Testing**.
+Proyek fullstack modern dan terstruktur yang menggabungkan frontend berbasis **Vite (React 19 + TypeScript + PWA)** dan backend berbasis **NestJS (TypeScript)** dengan dokumentasi interaktif **Swagger OpenAPI**, **End-to-End (E2E) Testing**, serta **arsitektur siap deploy terpisah ke Vercel**.
 
 ---
 
 ## 🏛️ Arsitektur Sistem
 
-Aplikasi ini dirancang dengan pemisahan tanggung jawab (*separation of concerns*) yang jelas antara frontend dan backend:
+Aplikasi ini dirancang dengan pemisahan tanggung jawab (*separation of concerns*) yang jelas antara frontend dan backend, baik saat dijalankan di lingkungan lokal maupun saat di-deploy ke Vercel secara terpisah:
 
 ```mermaid
 flowchart LR
@@ -18,38 +18,21 @@ flowchart LR
         PWA --- Manifest
     end
 
-    subgraph FrontendServer ["Frontend Dev Server"]
-        ViteDev["Vite Dev Server\nhttp://localhost:5173\n(Proxy /api)"]
+    subgraph VercelFrontend ["Vercel Project 1: Frontend"]
+        VercelFE["Vercel Static / Edge Network\n(Vite SPA + Rewrites)"]
     end
 
-    subgraph BackendServer ["Backend API Server (NestJS)"]
-        NestApp["NestJS Application\nhttp://localhost:3000"]
-        Swagger["Swagger UI Docs\nhttp://localhost:3000/docs"]
-        Controller["AppController\n(/api/status, /)"]
-        Service["AppService\n(Business Logic)"]
-        NestApp --> Swagger
-        NestApp --> Controller --> Service
+    subgraph VercelBackend ["Vercel Project 2: Backend"]
+        VercelBE["Vercel Serverless Function\n(@vercel/node Runtime)"]
+        Swagger["Swagger UI Docs\n/docs & /api/docs"]
+        NestApp["NestJS Application\n(/api/status, /)"]
+        VercelBE --> NestApp
+        VercelBE --> Swagger
     end
 
-    PWA <--> ViteDev
-    ViteDev -- "Proxy /api" --> NestApp
-    PWA -. "Direct / CORS" .-> NestApp
+    PWA <--> VercelFE
+    VercelFE -- "REST API (VITE_API_URL)" --> VercelBE
 ```
-
-### 1. Frontend (`/frontend`)
-- **Vite & React 19**: Rendering UI reaktif dengan bundling kilat dan Hot Module Replacement (HMR).
-- **TypeScript**: Pengecekan tipe statis di seluruh komponen, custom hook, dan service.
-- **PWA (Progressive Web App)**: Ditenagai oleh `vite-plugin-pwa` dan Workbox untuk kemampuan offline, caching aset, dan dapat di-install layaknya aplikasi native pada ponsel (Android/iOS) maupun desktop.
-- **Arsitektur Modular**: Terbagi dalam folder `components`, `hooks`, `services`, `types`, dan `utils`.
-- **E2E Testing**: Dilengkapi suite pengujian alur interaksi pengguna menggunakan **Playwright**.
-- **Vite Proxy**: Otomatis meneruskan request `/api` ke backend NestJS di port 3000.
-
-### 2. Backend (`/backend`)
-- **NestJS v12**: Framework Node.js berarsitektur enterprise dengan Dependency Injection, Module, dan Controller.
-- **Swagger OpenAPI 3.0**: Dokumentasi interaktif siap pakai di **`http://localhost:3000/docs`** (dan `/api/docs`).
-- **TypeScript**: Konsistensi tipe bahasa end-to-end dari backend ke frontend.
-- **CORS Support**: Konfigurasi Cross-Origin Resource Sharing aktif di `main.ts` agar integrasi API aman dan fleksibel.
-- **E2E & Unit Testing**: Ditenagai oleh **Vitest** dan **Supertest** dengan performa eksekusi super cepat.
 
 ---
 
@@ -64,10 +47,12 @@ GEN_APHYAH/
 │   │   ├── app.controller.ts      # REST Endpoints (/ & /api/status) + Swagger
 │   │   ├── app.service.ts         # Business Logic
 │   │   ├── app.module.ts          # Root Module
-│   │   └── main.ts                # Bootstrap, CORS & Swagger Setup
+│   │   └── main.ts                # Bootstrap (Standalone & Vercel Serverless Handler)
 │   ├── test/                      # E2E Tests (Vitest + Supertest)
+│   ├── .env.example               # Contoh konfigurasi environment
 │   ├── .gitignore                 # Aturan ignore spesifik backend
 │   ├── package.json               # Dependensi & skrip backend
+│   ├── vercel.json                # Konfigurasi serverless Vercel (@vercel/node)
 │   └── README.md                  # Dokumentasi teknis backend
 │
 ├── frontend/                      # Client Vite + React + TS + PWA
@@ -76,15 +61,17 @@ GEN_APHYAH/
 │   ├── src/
 │   │   ├── components/            # Komponen UI reusable (StatusBadge, dll.)
 │   │   ├── hooks/                 # Custom Hooks (useNetworkStatus, dll.)
-│   │   ├── services/              # API Client (api.ts)
+│   │   ├── services/              # API Client terpusat (api.ts)
 │   │   ├── types/                 # TypeScript Types & Interfaces
 │   │   ├── utils/                 # Utility functions & helpers
 │   │   ├── App.tsx                # Dashboard interaktif & API tester
 │   │   ├── ReloadPrompt.tsx       # Auto-update banner Service Worker
 │   │   └── vite-env.d.ts          # Client environment types
+│   ├── .env.example               # Contoh konfigurasi environment (VITE_API_URL)
 │   ├── .gitignore                 # Aturan ignore spesifik frontend
 │   ├── playwright.config.ts       # Konfigurasi Playwright
 │   ├── package.json               # Dependensi & skrip frontend
+│   ├── vercel.json                # Konfigurasi SPA rewrite Vercel
 │   ├── vite.config.ts             # Konfigurasi Vite & VitePWA
 │   └── README.md                  # Dokumentasi teknis frontend
 │
@@ -107,10 +94,9 @@ GEN_APHYAH/
 
 ---
 
-## 🚀 Panduan Memulai Cepat (Quick Start)
+## 🚀 Panduan Menjalankan di Lokal (Quick Start)
 
 ### 1. Instalasi Seluruh Dependensi
-Dari direktori root proyek:
 ```bash
 npm run install:all
 ```
@@ -130,16 +116,36 @@ npm run dev:frontend
 
 ---
 
-## 📚 Mengakses Dokumentasi Swagger
+## ☁️ Panduan Deploy ke Vercel Secara Terpisah
 
-Dokumentasi interaktif OpenAPI Swagger telah terpasang dan dapat langsung diakses di browser:
-👉 **[http://localhost:3000/docs](http://localhost:3000/docs)**
-*(Atau via alias path: `http://localhost:3000/api/docs`)*
+Karena struktur repositori adalah monorepo (`frontend/` dan `backend/`), Anda dapat membuat **2 Proyek Terpisah di Vercel** dari satu repository GitHub yang sama:
 
-Di halaman Swagger ini, Anda dapat:
-1. Membaca spesifikasi seluruh REST endpoint.
-2. Mempelajari struktur request dan response model DTO (`StatusResponseDto`).
-3. Menguji eksekusi endpoint secara langsung menggunakan tombol **"Try it out"**.
+### Langkah 1: Deploy Backend Terlebih Dahulu (Proyek 1 di Vercel)
+1. Buka [Vercel Dashboard](https://vercel.com/) -> **Add New...** -> **Project**.
+2. Pilih repository: **`Couraa0/GEN_APHYAH`**.
+3. Di bagian **Root Directory**, klik **Edit** dan pilih folder **`backend`**.
+4. Vercel akan otomatis mengenali konfigurasi [`backend/vercel.json`](file:///c:/Users/Rakha/OneDrive/Documents/GEN_APHYAH/backend/vercel.json).
+5. Pada bagian **Environment Variables**, tambahkan:
+   - `NODE_ENV` = `production`
+6. Klik **Deploy**.
+7. Salin URL backend yang dihasilkan (contoh: `https://gen-aphyah-backend.vercel.app`).
+   - Uji API: `https://gen-aphyah-backend.vercel.app/api/status`
+   - Uji Swagger: `https://gen-aphyah-backend.vercel.app/docs`
+
+---
+
+### Langkah 2: Deploy Frontend (Proyek 2 di Vercel)
+1. Kembali ke [Vercel Dashboard](https://vercel.com/) -> **Add New...** -> **Project**.
+2. Pilih kembali repository yang sama: **`Couraa0/GEN_APHYAH`**.
+3. Di bagian **Root Directory**, klik **Edit** dan pilih folder **`frontend`**.
+4. Pengaturan Build:
+   - **Framework Preset**: `Vite` (otomatis)
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+5. Pada bagian **Environment Variables**, tambahkan URL backend dari Langkah 1:
+   - `VITE_API_URL` = `https://gen-aphyah-backend.vercel.app` *(gunakan URL backend Anda)*
+6. Klik **Deploy**.
+7. Frontend PWA Anda kini aktif di URL Vercel (contoh: `https://gen-aphyah-frontend.vercel.app`) dan terhubung langsung ke backend serverless!
 
 ---
 
@@ -149,15 +155,13 @@ Di halaman Swagger ini, Anda dapat:
 ```bash
 npm run test:e2e:backend
 ```
-*Menguji endpoint root `/` dan endpoint status `/api/status` secara end-to-end.*
 
 ### Pengujian E2E Frontend (Playwright):
 ```bash
 npm run test:e2e:frontend
 ```
-*Menguji rendering komponen halaman utama, badge PWA, dan web manifest.*
 
-### Menjalankan Seluruh E2E Test Sekaligus:
+### Menjalankan Seluruh E2E Test:
 ```bash
 npm run test:e2e
 ```
@@ -166,38 +170,20 @@ npm run test:e2e
 
 ## 📜 Ringkasan Perintah NPM
 
-### Perintah Root (`GEN_APHYAH`):
 | Perintah | Deskripsi |
 | :--- | :--- |
 | `npm run install:all` | Menginstal semua dependensi di frontend & backend |
-| `npm run dev:frontend` | Menjalankan Vite frontend dev server (`localhost:5173`) |
-| `npm run dev:backend` | Menjalankan NestJS backend dev server (`localhost:3000`) |
-| `npm run build:frontend` | Build produksi frontend + service worker ke `frontend/dist` |
-| `npm run build:backend` | Kompilasi TypeScript backend ke `backend/dist` |
+| `npm run dev:frontend` | Menjalankan Vite dev server (`localhost:5173`) |
+| `npm run dev:backend` | Menjalankan NestJS dev server (`localhost:3000`) |
+| `npm run build:frontend` | Build produksi frontend + Service Worker |
+| `npm run build:backend` | Kompilasi TypeScript backend |
 | `npm run test:e2e:backend` | Menjalankan pengujian E2E backend |
 | `npm run test:e2e:frontend` | Menjalankan pengujian E2E frontend |
-| `npm run test:e2e` | Menjalankan seluruh pengujian E2E backend dan frontend |
-
-### Perintah Khusus Frontend (`cd frontend`):
-| Perintah | Deskripsi |
-| :--- | :--- |
-| `npm run dev` | Menjalankan Vite dev server dengan HMR |
-| `npm run build` | Menjalankan type-check dan build produksi |
-| `npm run test:e2e` | Menjalankan pengujian Playwright E2E |
-| `npm run preview` | Menjalankan server lokal untuk preview folder `dist` |
-
-### Perintah Khusus Backend (`cd backend`):
-| Perintah | Deskripsi |
-| :--- | :--- |
-| `npm run start:dev` | Menjalankan NestJS dalam watch mode |
-| `npm run build` | Kompilasi TypeScript ke folder `dist` |
-| `npm run test` | Menjalankan unit test dengan Vitest |
-| `npm run test:e2e` | Menjalankan integration test E2E |
-| `npm run start:prod` | Menjalankan aplikasi hasil build produksi |
+| `npm run test:e2e` | Menjalankan seluruh pengujian E2E |
 
 ---
 
 ## 🔗 Dokumentasi Detail Masing-Masing Modul
 
-- ⚡ [Dokumentasi Lengkap Frontend (Vite + PWA)](file:///c:/Users/Rakha/OneDrive/Documents/GEN_APHYAH/frontend/README.md)
-- 🦁 [Dokumentasi Lengkap Backend (NestJS + Swagger)](file:///c:/Users/Rakha/OneDrive/Documents/GEN_APHYAH/backend/README.md)
+- ⚡ [Dokumentasi Lengkap Frontend (Vite + PWA + Vercel)](file:///c:/Users/Rakha/OneDrive/Documents/GEN_APHYAH/frontend/README.md)
+- 🦁 [Dokumentasi Lengkap Backend (NestJS + Swagger + Vercel)](file:///c:/Users/Rakha/OneDrive/Documents/GEN_APHYAH/backend/README.md)
