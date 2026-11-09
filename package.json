@@ -1,0 +1,27 @@
+{
+  "name": "gen-aphyah",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GEN APHYAH Fullstack Application - Vite (React + TS + PWA) & NestJS Backend",
+  "scripts": {
+    "dev:frontend": "npm run dev --prefix frontend",
+    "dev:backend": "npm run start:dev --prefix backend",
+    "build:frontend": "npm run build --prefix frontend",
+    "build:backend": "npm run build --prefix backend",
+    "test:e2e:backend": "npm run test:e2e --prefix backend",
+    "test:e2e:frontend": "npm run test:e2e --prefix frontend",
+    "test:e2e": "npm run test:e2e:backend && npm run test:e2e:frontend",
+    "install:all": "npm install --prefix frontend && npm install --prefix backend"
+  },
+  "keywords": [
+    "vite",
+    "react",
+    "typescript",
+    "pwa",
+    "nestjs",
+    "swagger",
+    "e2e-testing"
+  ],
+  "author": "",
+  "license": "ISC"
+}

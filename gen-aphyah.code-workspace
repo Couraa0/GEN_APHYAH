@@ -1,0 +1,28 @@
+{
+  "folders": [
+    {
+      "name": "Root (GEN_APHYAH)",
+      "path": "."
+    },
+    {
+      "name": "Frontend (Vite + React + PWA)",
+      "path": "frontend"
+    },
+    {
+      "name": "Backend (NestJS)",
+      "path": "backend"
+    }
+  ],
+  "settings": {
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "editor.formatOnSave": true,
+    "editor.tabSize": 2
+  },
+  "extensions": {
+    "recommendations": [
+      "dbaeumer.vscode-eslint",
+      "esbenp.prettier-vscode",
+      "pkief.material-icon-theme"
+    ]
+  }
+}
