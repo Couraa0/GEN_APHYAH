@@ -51,3 +51,10 @@ ehthumbs.db
 *.njsproj
 *.sln
 *.sw?
+*.code-workspace
+.vscode/
+*/.vscode/
+.cursor/
+*/.cursor/
+*claude*
+*antigravity*
