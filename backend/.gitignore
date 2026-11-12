@@ -54,3 +54,6 @@ ehthumbs.db
 *.sln
 *.sw?
 
+
+# Prisma Client hasil generate (dibuat ulang oleh `prisma generate`)
+src/generated/

@@ -1,9 +1,11 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { AppService } from './app.service.js';
+import { Public } from './auth/auth.guard.js';
 import { StatusResponseDto } from './common/dto/status-response.dto.js';
 
 @ApiTags('Core')
+@Public()
 @Controller()
 export class AppController {
   constructor(private readonly appService: AppService) {}

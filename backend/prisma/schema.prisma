@@ -1,0 +1,341 @@
+// Skema database RUNA Circular Integration.
+// Stok TIDAK disimpan sebagai angka total: saldo = SUM(inventory_movements.quantityKg).
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  PENGURUS
+  PETUGAS
+  MITRA
+}
+
+enum WasteGroup {
+  ANORGANIK
+  ORGANIK
+  RESIDU
+}
+
+enum CollectionType {
+  POINT_COLLECTION
+  HOME_PICKUP
+  DROP_OFF
+}
+
+enum WeighingStatus {
+  PENDING
+  USED
+  DISCARDED
+}
+
+enum MovementType {
+  COLLECTION
+  SALE
+  PROCESSING
+  ADJUSTMENT
+}
+
+enum PickupStatus {
+  SCHEDULED
+  IN_PROGRESS
+  DONE
+  CANCELLED
+}
+
+enum RequestStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  COMPLETED
+}
+
+enum BatchStatus {
+  ACTIVE
+  CLOSED
+}
+
+enum OrganicRecordType {
+  FEEDING
+  OBSERVATION
+  HARVEST
+  FRASS
+}
+
+model User {
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  username     String   @unique
+  passwordHash String
+  role         Role
+  active       Boolean  @default(true)
+  // Hanya untuk role MITRA: akun ini mewakili pembeli yang mana.
+  buyerId      String?  @db.Uuid
+  buyer        Buyer?   @relation(fields: [buyerId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  collections CollectionTransaction[]
+  movements   InventoryMovement[]
+  pickups     PickupSchedule[]
+
+  @@map("users")
+}
+
+model Household {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  address   String?
+  rt        String?
+  rw        String?
+  phone     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  collections CollectionTransaction[]
+
+  @@map("households")
+}
+
+model CollectionPoint {
+  id          String   @id @default(uuid()) @db.Uuid
+  name        String   @unique
+  description String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  collections CollectionTransaction[]
+  pickups     PickupSchedule[]
+
+  @@map("collection_points")
+}
+
+model WasteCategory {
+  id         String     @id @default(uuid()) @db.Uuid
+  name       String     @unique
+  group      WasteGroup @default(ANORGANIK)
+  // Katalog marketplace = kategori dengan listed = true.
+  listed     Boolean    @default(false)
+  pricePerKg Decimal?   @db.Decimal(12, 2)
+  active     Boolean    @default(true)
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  collections CollectionTransaction[]
+  movements   InventoryMovement[]
+  requests    MarketplaceRequest[]
+  sales       Sale[]
+  experiments PlasticExperiment[]
+
+  @@map("waste_categories")
+}
+
+model CollectionTransaction {
+  id                String          @id @default(uuid()) @db.Uuid
+  collectionPointId String          @db.Uuid
+  collectionPoint   CollectionPoint @relation(fields: [collectionPointId], references: [id])
+  householdId       String?         @db.Uuid
+  household         Household?      @relation(fields: [householdId], references: [id])
+  wasteCategoryId   String          @db.Uuid
+  wasteCategory     WasteCategory   @relation(fields: [wasteCategoryId], references: [id])
+  weightKg          Decimal         @db.Decimal(10, 3)
+  collectionType    CollectionType  @default(POINT_COLLECTION)
+  recordedById      String          @db.Uuid
+  recordedBy        User            @relation(fields: [recordedById], references: [id])
+  recordedAt        DateTime
+  // Idempotency key dari perangkat: kirim ulang tidak membuat transaksi ganda.
+  clientMutationId  String          @unique
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  weighing WeighingRecord?
+  movement InventoryMovement?
+
+  @@index([recordedAt])
+  @@index([collectionPointId, recordedAt])
+  @@map("collection_transactions")
+}
+
+// Pembacaan dari timbangan IoT. Baru menjadi transaksi resmi setelah dipakai petugas.
+model WeighingRecord {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  deviceId                String
+  weightKg                Decimal                @db.Decimal(10, 3)
+  measuredAt              DateTime
+  status                  WeighingStatus         @default(PENDING)
+  collectionTransactionId String?                @unique @db.Uuid
+  collectionTransaction   CollectionTransaction? @relation(fields: [collectionTransactionId], references: [id])
+  createdAt               DateTime               @default(now())
+
+  @@index([status, measuredAt])
+  @@map("weighing_records")
+}
+
+// Ledger stok. quantityKg positif = masuk, negatif = keluar.
+model InventoryMovement {
+  id                      String                 @id @default(uuid()) @db.Uuid
+  wasteCategoryId         String                 @db.Uuid
+  wasteCategory           WasteCategory          @relation(fields: [wasteCategoryId], references: [id])
+  type                    MovementType
+  quantityKg              Decimal                @db.Decimal(10, 3)
+  note                    String?
+  collectionTransactionId String?                @unique @db.Uuid
+  collectionTransaction   CollectionTransaction? @relation(fields: [collectionTransactionId], references: [id])
+  saleId                  String?                @unique @db.Uuid
+  sale                    Sale?                  @relation(fields: [saleId], references: [id])
+  plasticExperimentId     String?                @unique @db.Uuid
+  plasticExperiment       PlasticExperiment?     @relation(fields: [plasticExperimentId], references: [id])
+  recordedById            String                 @db.Uuid
+  recordedBy              User                   @relation(fields: [recordedById], references: [id])
+  createdAt               DateTime               @default(now())
+
+  @@index([wasteCategoryId])
+  @@index([createdAt])
+  @@map("inventory_movements")
+}
+
+// Pengangkutan adalah peristiwa sendiri: memindahkan material, bukan pengumpulan baru,
+// sehingga tidak menambah ledger stok.
+model PickupSchedule {
+  id                String          @id @default(uuid()) @db.Uuid
+  collectionPointId String          @db.Uuid
+  collectionPoint   CollectionPoint @relation(fields: [collectionPointId], references: [id])
+  assignedToId      String?         @db.Uuid
+  assignedTo        User?           @relation(fields: [assignedToId], references: [id])
+  scheduledAt       DateTime
+  status            PickupStatus    @default(SCHEDULED)
+  movedWeightKg     Decimal?        @db.Decimal(10, 3)
+  handedOverTo      String?
+  notes             String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  @@index([scheduledAt])
+  @@map("pickup_schedules")
+}
+
+model Buyer {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  phone     String?
+  address   String?
+  notes     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users    User[]
+  requests MarketplaceRequest[]
+  sales    Sale[]
+
+  @@map("buyers")
+}
+
+model MarketplaceRequest {
+  id                String        @id @default(uuid()) @db.Uuid
+  buyerId           String        @db.Uuid
+  buyer             Buyer         @relation(fields: [buyerId], references: [id])
+  wasteCategoryId   String        @db.Uuid
+  wasteCategory     WasteCategory @relation(fields: [wasteCategoryId], references: [id])
+  quantityKg        Decimal       @db.Decimal(10, 3)
+  offeredPricePerKg Decimal?      @db.Decimal(12, 2)
+  status            RequestStatus @default(PENDING)
+  note              String?
+  createdAt         DateTime      @default(now())
+  updatedAt         DateTime      @updatedAt
+
+  sale Sale?
+
+  @@index([status])
+  @@map("marketplace_requests")
+}
+
+model Sale {
+  id              String              @id @default(uuid()) @db.Uuid
+  buyerId         String              @db.Uuid
+  buyer           Buyer               @relation(fields: [buyerId], references: [id])
+  wasteCategoryId String              @db.Uuid
+  wasteCategory   WasteCategory       @relation(fields: [wasteCategoryId], references: [id])
+  weightKg        Decimal             @db.Decimal(10, 3)
+  pricePerKg      Decimal             @db.Decimal(12, 2)
+  totalAmount     Decimal             @db.Decimal(14, 2)
+  requestId       String?             @unique @db.Uuid
+  request         MarketplaceRequest? @relation(fields: [requestId], references: [id])
+  soldAt          DateTime
+  createdAt       DateTime            @default(now())
+
+  movement InventoryMovement?
+
+  @@index([soldAt])
+  @@map("sales_transactions")
+}
+
+model OrganicBatch {
+  id        String      @id @default(uuid()) @db.Uuid
+  code      String      @unique
+  startedAt DateTime
+  status    BatchStatus @default(ACTIVE)
+  notes     String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  records OrganicRecord[]
+
+  @@map("organic_batches")
+}
+
+// Satu tabel untuk pakan, observasi, panen larva, dan residu/frass.
+model OrganicRecord {
+  id         String            @id @default(uuid()) @db.Uuid
+  batchId    String            @db.Uuid
+  batch      OrganicBatch      @relation(fields: [batchId], references: [id])
+  type       OrganicRecordType
+  weightKg   Decimal?          @db.Decimal(10, 3)
+  note       String?
+  recordedAt DateTime
+  createdAt  DateTime          @default(now())
+
+  @@index([batchId, recordedAt])
+  @@map("organic_records")
+}
+
+model PlasticExperiment {
+  id              String        @id @default(uuid()) @db.Uuid
+  code            String        @unique
+  wasteCategoryId String        @db.Uuid
+  wasteCategory   WasteCategory @relation(fields: [wasteCategoryId], references: [id])
+  plasticWeightKg Decimal       @db.Decimal(10, 3)
+  composition     String?
+  method          String?
+  partner         String?
+  prototypeCount  Int           @default(0)
+  testResult      String?
+  evaluation      String?
+  conductedAt     DateTime
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  movement InventoryMovement?
+
+  @@map("plastic_experiments")
+}
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String?  @db.Uuid
+  method     String
+  path       String
+  statusCode Int
+  createdAt  DateTime @default(now())
+
+  @@index([createdAt])
+  @@map("audit_logs")
+}

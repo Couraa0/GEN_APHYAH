@@ -1,130 +1,140 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
+import { Navigate, NavLink, Route, Routes } from 'react-router'
 import { ReloadPrompt } from './ReloadPrompt'
 import { StatusBadge } from './components/common/StatusBadge'
+import { LoginPage } from './features/auth/LoginPage'
+import { CollectionPage } from './features/collection/CollectionPage'
+import { DashboardPage } from './features/dashboard/DashboardPage'
+import { InventoryPage } from './features/inventory/InventoryPage'
+import { MarketplacePage } from './features/marketplace/MarketplacePage'
+import { MasterPage } from './features/master/MasterPage'
+import { OrganicPage } from './features/organic/OrganicPage'
+import { PickupsPage } from './features/pickups/PickupsPage'
+import { PlasticPage } from './features/plastic/PlasticPage'
+import { ReportsPage } from './features/reports/ReportsPage'
 import { useNetworkStatus } from './hooks/useNetworkStatus'
-import { fetchBackendStatus } from './services/api'
-import { formatTimestamp } from './utils/formatDate'
-import type { BackendStatus } from './types'
-import './App.css'
+import { useQueue } from './hooks/useQueue'
+import { LOGOUT_EVENT, session, syncQueue } from './services/api'
+import { label } from './utils/format'
+
+const STAFF_NAV = [
+  { to: '/', label: 'Beranda' },
+  { to: '/pengumpulan', label: 'Pengumpulan' },
+  { to: '/stok', label: 'Stok Material' },
+  { to: '/pengangkutan', label: 'Pengangkutan' },
+  { to: '/marketplace', label: 'Marketplace' },
+  { to: '/organik', label: 'Maggot BSF' },
+  { to: '/plastik', label: 'Paving Block' },
+  { to: '/laporan', label: 'Laporan' },
+  { to: '/data', label: 'Data Master' },
+]
+const MITRA_NAV = [{ to: '/marketplace', label: 'Marketplace' }]
 
 function App() {
+  const [user, setUser] = useState(session.user)
+  const [menuOpen, setMenuOpen] = useState(false)
   const isOnline = useNetworkStatus()
-  const [backendData, setBackendData] = useState<BackendStatus | null>(null)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const pending = useQueue()
 
-  const handleCheckBackend = async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await fetchBackendStatus()
-      setBackendData(data)
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message)
-      } else {
-        setError('Gagal terhubung ke backend')
-      }
-    } finally {
-      setLoading(false)
+  useEffect(() => {
+    const onLogout = () => setUser(null)
+    window.addEventListener(LOGOUT_EVENT, onLogout)
+    return () => window.removeEventListener(LOGOUT_EVENT, onLogout)
+  }, [])
+
+  // Kirim antrean offline saat aplikasi dibuka, koneksi kembali, atau tab aktif lagi.
+  useEffect(() => {
+    if (!user) return
+    const sync = () => {
+      if (document.visibilityState === 'visible') void syncQueue()
     }
+    sync()
+    window.addEventListener('online', sync)
+    document.addEventListener('visibilitychange', sync)
+    return () => {
+      window.removeEventListener('online', sync)
+      document.removeEventListener('visibilitychange', sync)
+    }
+  }, [user])
+
+  if (!user) {
+    return (
+      <>
+        <LoginPage onLogin={setUser} isOnline={isOnline} />
+        <ReloadPrompt />
+      </>
+    )
   }
 
+  const isMitra = user.role === 'MITRA'
+  const nav = isMitra ? MITRA_NAV : STAFF_NAV
+  const badge = <StatusBadge isOnline={isOnline} pending={pending.length} />
+
   return (
-    <div className="container">
-      <header className="header">
-        <div className="badge-wrapper">
-          <StatusBadge isOnline={isOnline} />
-          <span className="badge">Vite + React + TS</span>
-          <span className="badge">NestJS Backend</span>
-        </div>
-        <h1 className="title">GEN APHYAH</h1>
-        <p className="subtitle">
-          Modern Fullstack Starter: <strong>Vite (React + TypeScript + PWA)</strong> &amp; <strong>NestJS</strong>
-        </p>
+    <div className="app">
+      <header className="topbar">
+        <button
+          className="btn btn-sm btn-outline-light"
+          aria-label="Buka menu"
+          aria-expanded={menuOpen}
+          onClick={() => setMenuOpen(true)}
+        >
+          ☰
+        </button>
+        <strong className="me-auto">RUNA</strong>
+        {badge}
       </header>
 
-      <main className="main-content">
-        <div className="card-grid">
-          {/* Card Frontend */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-icon">⚡</span>
-              <h2>Frontend (Vite + PWA)</h2>
-            </div>
-            <p className="card-desc">
-              Aplikasi berbasis Vite, React 19, TypeScript, dan Service Worker untuk dukungan Progressive Web App (PWA).
-            </p>
-            <ul className="feature-list">
-              <li>✅ Hot Module Replacement (HMR) super cepat</li>
-              <li>✅ Dukungan Offline &amp; Service Worker otomatis</li>
-              <li>✅ Manifest PWA untuk instalasi di desktop &amp; mobile</li>
-              <li>✅ Struktur folder modular (components, hooks, services, types)</li>
-            </ul>
-          </div>
-
-          {/* Card Backend */}
-          <div className="card">
-            <div className="card-header">
-              <span className="card-icon">🦁</span>
-              <h2>Backend (NestJS)</h2>
-            </div>
-            <p className="card-desc">
-              Backend berbasis NestJS dengan arsitektur modular, TypeScript, Dependency Injection, dan CORS terintegrasi.
-            </p>
-            <ul className="feature-list">
-              <li>✅ Arsitektur Controller, Service, dan Module yang terstruktur</li>
-              <li>✅ CORS siap pakai untuk komunikasi frontend</li>
-              <li>✅ Vitest untuk testing unit dan e2e</li>
-              <li>✅ Port default: <code>http://localhost:3000</code></li>
-            </ul>
-          </div>
+      {menuOpen && <div className="backdrop" onClick={() => setMenuOpen(false)} />}
+      <nav className={`sidebar${menuOpen ? ' open' : ''}`} aria-label="Menu utama">
+        <div className="brand">
+          RUNA
+          <small>Circular Integration</small>
         </div>
-
-        {/* API Integration Test Section */}
-        <section className="test-section">
-          <h2>Uji Koneksi Backend NestJS</h2>
-          <p>
-            Jalankan backend dengan <code>npm run start:dev</code> di folder <code>backend</code>, lalu klik tombol di bawah untuk mengetes komunikasi API.
-          </p>
-
+        {nav.map((item) => (
+          <NavLink key={item.to} to={item.to} end={item.to === '/'} onClick={() => setMenuOpen(false)}>
+            {item.label}
+          </NavLink>
+        ))}
+        <div className="account">
+          <div className="mb-2">{badge}</div>
+          <div className="fw-semibold">{user.name}</div>
+          <div className="opacity-75 mb-2">{label(user.role)}</div>
           <button
-            className="action-button"
-            onClick={handleCheckBackend}
-            disabled={loading}
+            className="btn btn-sm btn-outline-light"
+            onClick={() => {
+              // Antrean tetap di perangkat; akan terkirim atas nama akun yang login berikutnya.
+              const ok =
+                !pending.length ||
+                confirm(`Masih ada ${pending.length} transaksi belum tersinkron. Tetap keluar?`)
+              if (ok) session.clear()
+            }}
           >
-            {loading ? 'Menghubungkan...' : 'Tes Koneksi Backend (/api/status)'}
+            Keluar
           </button>
+        </div>
+      </nav>
 
-          {backendData && (
-            <div className="response-box success">
-              <h3>Respons Backend Berhasil:</h3>
-              <p>
-                <strong>Service:</strong> {backendData.service} (v{backendData.version})
-              </p>
-              <p>
-                <strong>Status:</strong> {backendData.status}
-              </p>
-              <p>
-                <strong>Waktu Server:</strong> {formatTimestamp(backendData.timestamp)}
-              </p>
-              <pre>{JSON.stringify(backendData, null, 2)}</pre>
-            </div>
+      <main className="content">
+        <Routes>
+          {isMitra ? (
+            <Route path="/marketplace" element={<MarketplacePage user={user} />} />
+          ) : (
+            <>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/pengumpulan" element={<CollectionPage />} />
+              <Route path="/stok" element={<InventoryPage user={user} />} />
+              <Route path="/pengangkutan" element={<PickupsPage user={user} />} />
+              <Route path="/marketplace" element={<MarketplacePage user={user} />} />
+              <Route path="/organik" element={<OrganicPage />} />
+              <Route path="/plastik" element={<PlasticPage />} />
+              <Route path="/laporan" element={<ReportsPage />} />
+              <Route path="/data" element={<MasterPage user={user} />} />
+            </>
           )}
-
-          {error && (
-            <div className="response-box error">
-              <h3>Gagal Terhubung:</h3>
-              <p>{error}</p>
-              <small>Pastikan server NestJS sedang berjalan pada <code>http://localhost:3000</code>.</small>
-            </div>
-          )}
-        </section>
+          <Route path="*" element={<Navigate to={isMitra ? '/marketplace' : '/'} replace />} />
+        </Routes>
       </main>
-
-      <footer className="footer">
-        <p>GEN APHYAH Starter Template &bull; Vite + TypeScript + PWA &bull; NestJS</p>
-      </footer>
 
       <ReloadPrompt />
     </div>

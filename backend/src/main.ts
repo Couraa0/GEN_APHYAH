@@ -4,6 +4,13 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import express, { Express } from 'express';
 import { AppModule } from './app.module.js';
 
+// Lokal: baca backend/.env. Di Vercel variabel sudah ada di environment.
+try {
+  process.loadEnvFile();
+} catch {
+  // tidak ada file .env
+}
+
 let cachedServer: Express;
 
 export async function createNestServer(expressInstance: Express) {
@@ -12,17 +19,20 @@ export async function createNestServer(expressInstance: Express) {
     new ExpressAdapter(expressInstance),
   );
 
+  // Autentikasi memakai header Authorization (bukan cookie), jadi tanpa credentials.
+  const origins = (process.env.CORS_ORIGIN ?? '*').split(',').map((o) => o.trim());
   app.enableCors({
-    origin: '*',
+    origin: origins.includes('*') ? '*' : origins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
-    credentials: true,
   });
 
   const swaggerConfig = new DocumentBuilder()
-    .setTitle('GEN APHYAH API')
-    .setDescription('Dokumentasi RESTful API untuk GEN APHYAH Backend (NestJS)')
+    .setTitle('RUNA Circular Integration API')
+    .setDescription(
+      'REST API Bank Sampah RUNA: pengumpulan, stok, pengangkutan, marketplace, pilot pengolahan, dan laporan.',
+    )
     .setVersion('1.0')
-    .addTag('Core', 'Endpoint utama dan health check')
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, swaggerConfig);
@@ -52,5 +62,5 @@ if (process.env.VERCEL !== '1') {
     console.log(`🚀 Backend server is running on http://localhost:${port}`);
     console.log(`📚 Swagger documentation available at http://localhost:${port}/docs`);
   }
-  bootstrap();
+  void bootstrap();
 }

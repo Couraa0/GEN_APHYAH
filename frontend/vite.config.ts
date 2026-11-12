@@ -10,11 +10,12 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'pwa-192x192.svg', 'pwa-512x512.svg'],
       manifest: {
-        name: 'GEN APHYAH App',
-        short_name: 'GenAphyah',
-        description: 'Gen Aphyah - Vite + React + TypeScript + PWA Application',
-        theme_color: '#4f46e5',
-        background_color: '#ffffff',
+        name: 'RUNA Circular Integration',
+        short_name: 'RUNA',
+        description: 'Pengelolaan Bank Sampah RUNA: pengumpulan, stok, pengangkutan, dan marketplace.',
+        lang: 'id',
+        theme_color: '#0f4f2c',
+        background_color: '#f2f7f3',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -33,6 +34,11 @@ export default defineConfig({
             purpose: 'any maskable',
           },
         ],
+      },
+      workbox: {
+        // Shell aplikasi di-cache agar tetap terbuka saat offline. Request /api tidak
+        // di-cache service worker: data offline dikelola aplikasi lewat IndexedDB.
+        navigateFallbackDenylist: [/^\/api/, /^\/docs/],
       },
       devOptions: {
         enabled: true,

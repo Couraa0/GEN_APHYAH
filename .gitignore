@@ -58,3 +58,6 @@ ehthumbs.db
 */.cursor/
 *claude*
 *antigravity*
+
+# Kredensial firmware timbangan
+iot/weighing-scale/secrets.h

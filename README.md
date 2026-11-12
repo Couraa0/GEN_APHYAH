@@ -1,6 +1,33 @@
-# GEN APHYAH - Fullstack Enterprise Starter Project
+# RUNA Circular Integration (GEN APHYAH)
 
-Proyek fullstack modern dan terstruktur yang menggabungkan frontend berbasis **Vite (React 19 + TypeScript + PWA)** dan backend berbasis **NestJS (TypeScript)** dengan dokumentasi interaktif **Swagger OpenAPI**, **End-to-End (E2E) Testing**, serta **arsitektur siap deploy terpisah ke Vercel**.
+Aplikasi pengelolaan Bank Sampah RUNA, Desa Cibunian: pencatatan pengumpulan di empat titik, stok material, pengangkutan, Circular Marketplace, pilot Maggot BSF dan paving block, laporan dampak, serta timbangan digital ESP32. Frontend **Vite (React 19 + TypeScript + PWA)**, backend **NestJS + Prisma + PostgreSQL**, dokumentasi API **Swagger**, deploy terpisah ke Vercel.
+
+## ♻️ Menjalankan RUNA di lokal
+
+```bash
+npm run install:all
+cd backend
+cp .env.example .env        # lalu isi JWT_SECRET, IOT_DEVICE_KEY, SEED_ADMIN_PASSWORD
+npm run db:dev              # Postgres lokal tanpa Docker (prisma dev); lewati bila sudah punya PostgreSQL
+npm run db:migrate          # membuat tabel
+npm run seed                # akun "admin", 4 titik pengumpulan, 6 kategori
+```
+
+Lalu jalankan `npm run dev:backend` dan `npm run dev:frontend` dari root, buka `http://localhost:5173`, dan login sebagai `admin` dengan `SEED_ADMIN_PASSWORD`.
+
+| Bagian | Lokasi |
+| :--- | :--- |
+| Skema database & migrasi | `backend/prisma/` |
+| Modul API per domain | `backend/src/<domain>/` (daftar endpoint: `http://localhost:3000/docs`) |
+| Halaman per modul | `frontend/src/features/` |
+| Antrean offline (IndexedDB) & klien API | `frontend/src/services/` |
+| Firmware timbangan ESP32 + HX711 | `iot/weighing-scale/` |
+
+**Aturan inti:** stok tidak disimpan sebagai angka total, tetapi dihitung dari ledger `inventory_movements`. Pengumpulan dikirim dengan header `Idempotency-Key`, sehingga kirim ulang dari antrean offline tidak membuat transaksi ganda.
+
+**Tes:** `npm run test:e2e:backend` memakai `TEST_DATABASE_URL` (database terpisah yang isinya dihapus tiap run; `npm run db:test` di folder backend). `npm run test:e2e:frontend` memakai Playwright.
+
+**Deploy backend ke Vercel** butuh environment variable tambahan: `DATABASE_URL` (PostgreSQL ter-host), `JWT_SECRET`, `IOT_DEVICE_KEY`, dan `CORS_ORIGIN` (URL frontend). Jalankan `npm run db:migrate` terhadap database produksi sebelum dipakai.
 
 ---
 

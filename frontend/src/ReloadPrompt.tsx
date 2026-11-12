@@ -6,9 +6,6 @@ export function ReloadPrompt() {
     needRefresh: [needRefresh, setNeedRefresh],
     updateServiceWorker,
   } = useRegisterSW({
-    onRegistered(r) {
-      console.log('SW Registered:', r)
-    },
     onRegisterError(error) {
       console.error('SW registration error', error)
     },
@@ -23,24 +20,21 @@ export function ReloadPrompt() {
 
   return (
     <div className="pwa-toast" role="alert">
-      <div className="message">
-        {offlineReady ? (
-          <span>Aplikasi siap dijalankan secara offline!</span>
-        ) : (
-          <span>Konten baru tersedia, klik untuk memperbarui.</span>
-        )}
-      </div>
+      <span>
+        {offlineReady
+          ? 'Aplikasi siap dipakai tanpa internet.'
+          : 'Versi baru tersedia, muat ulang untuk memperbarui.'}
+      </span>
       <div className="actions">
         {needRefresh && (
-          <button className="btn-action" onClick={() => updateServiceWorker(true)}>
-            Muat Ulang
+          <button className="btn btn-sm btn-success" onClick={() => updateServiceWorker(true)}>
+            Muat ulang
           </button>
         )}
-        <button className="btn-close" onClick={close}>
+        <button className="btn btn-sm btn-outline-secondary" onClick={close}>
           Tutup
         </button>
       </div>
     </div>
   )
 }
-

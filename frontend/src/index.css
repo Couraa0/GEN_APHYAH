@@ -1,111 +1,252 @@
+/* Tema RUNA di atas Bootstrap. */
 :root {
-  --text: #6b6375;
-  --text-h: #08060d;
-  --bg: #fff;
-  --border: #e5e4e7;
-  --code-bg: #f4f3ec;
-  --accent: #aa3bff;
-  --accent-bg: rgba(170, 59, 255, 0.1);
-  --accent-border: rgba(170, 59, 255, 0.5);
-  --social-bg: rgba(244, 243, 236, 0.5);
-  --shadow:
-    rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.05) 0 4px 6px -2px;
-
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --mono: ui-monospace, Consolas, monospace;
-
-  font: 18px/145% var(--sans);
-  letter-spacing: 0.18px;
-  color-scheme: light dark;
-  color: var(--text);
-  background: var(--bg);
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-
-  @media (max-width: 1024px) {
-    font-size: 16px;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --text: #9ca3af;
-    --text-h: #f3f4f6;
-    --bg: #16171d;
-    --border: #2e303a;
-    --code-bg: #1f2028;
-    --accent: #c084fc;
-    --accent-bg: rgba(192, 132, 252, 0.15);
-    --accent-border: rgba(192, 132, 252, 0.5);
-    --social-bg: rgba(47, 48, 58, 0.5);
-    --shadow:
-      rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
-  }
-
-  #social .button-icon {
-    filter: invert(1) brightness(2);
-  }
-}
-
-#root {
-  width: 1126px;
-  max-width: 100%;
-  margin: 0 auto;
-  text-align: center;
-  border-inline: 1px solid var(--border);
-  min-height: 100svh;
-  display: flex;
-  flex-direction: column;
-  box-sizing: border-box;
+  --runa-green: #17703f;
+  --runa-green-dark: #0f4f2c;
+  --runa-bg: #f2f7f3;
 }
 
 body {
-  margin: 0;
+  background: var(--runa-bg);
 }
 
-h1,
-h2 {
-  font-family: var(--heading);
+.btn-success {
+  --bs-btn-bg: var(--runa-green);
+  --bs-btn-border-color: var(--runa-green);
+  --bs-btn-hover-bg: var(--runa-green-dark);
+  --bs-btn-hover-border-color: var(--runa-green-dark);
+  --bs-btn-active-bg: var(--runa-green-dark);
+  --bs-btn-disabled-bg: var(--runa-green);
+  --bs-btn-disabled-border-color: var(--runa-green);
+}
+
+/* ---- Layout: sidebar di desktop, menu geser di ponsel ---- */
+.app {
+  display: grid;
+  grid-template-columns: 230px minmax(0, 1fr);
+  min-height: 100dvh;
+}
+
+.sidebar {
+  background: var(--runa-green-dark);
+  color: #fff;
+  padding: 1rem 0.75rem;
+  position: sticky;
+  top: 0;
+  height: 100dvh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.sidebar .brand {
+  font-weight: 800;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  padding: 0.25rem 0.75rem 1rem;
+}
+
+.sidebar .brand small {
+  display: block;
+  font-size: 0.7rem;
   font-weight: 500;
-  color: var(--text-h);
+  opacity: 0.75;
 }
 
-h1 {
-  font-size: 56px;
-  letter-spacing: -1.68px;
-  margin: 32px 0;
-  @media (max-width: 1024px) {
-    font-size: 36px;
-    margin: 20px 0;
-  }
-}
-h2 {
-  font-size: 24px;
-  line-height: 118%;
-  letter-spacing: -0.24px;
-  margin: 0 0 8px;
-  @media (max-width: 1024px) {
-    font-size: 20px;
-  }
-}
-p {
-  margin: 0;
+.sidebar a {
+  color: #d5e8dc;
+  text-decoration: none;
+  padding: 0.55rem 0.75rem;
+  border-radius: 0.5rem;
 }
 
-code,
-.counter {
-  font-family: var(--mono);
+.sidebar a:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.sidebar a.active {
+  background: rgba(255, 255, 255, 0.18);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar .account {
+  margin-top: auto;
+  padding: 0.75rem;
+  font-size: 0.85rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.15);
+}
+
+.topbar {
+  display: none;
+}
+
+.content {
+  padding: 1.25rem;
+  min-width: 0;
+}
+
+@media (max-width: 991.98px) {
+  .app {
+    display: block;
+  }
+
+  .topbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    position: sticky;
+    top: 0;
+    z-index: 1030;
+    background: var(--runa-green-dark);
+    color: #fff;
+    padding: 0.6rem 0.9rem;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    width: 250px;
+    z-index: 1045;
+    transform: translateX(-100%);
+    transition: transform 0.2s ease;
+  }
+
+  .sidebar.open {
+    transform: none;
+  }
+
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 1040;
+    background: rgba(0, 0, 0, 0.45);
+  }
+
+  .content {
+    padding: 0.9rem;
+  }
+}
+
+/* ---- Kartu angka ringkasan ---- */
+.stat {
+  background: #fff;
+  border-radius: 0.75rem;
+  padding: 0.9rem 1rem;
+  height: 100%;
+  border-left: 4px solid var(--runa-green);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.stat .value {
+  font-size: 1.45rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.stat .caption {
+  font-size: 0.8rem;
+  color: #5b6b62;
+}
+
+/* ---- Grafik batang tren harian ---- */
+.bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  height: 140px;
+}
+
+.bars > div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  align-items: center;
+  height: 100%;
+  font-size: 0.65rem;
+  color: #5b6b62;
+  min-width: 0;
+}
+
+.bars .bar {
+  width: 100%;
+  background: var(--runa-green);
+  border-radius: 3px 3px 0 0;
+  min-height: 2px;
+}
+
+/* ---- Status online/offline & toast pembaruan PWA ---- */
+.pwa-badge {
+  background: rgba(255, 255, 255, 0.92);
+  color: #1f2937;
+  font-weight: 600;
   display: inline-flex;
-  border-radius: 4px;
-  color: var(--text-h);
+  align-items: center;
+  gap: 0.35rem;
 }
 
-code {
-  font-size: 15px;
-  line-height: 135%;
-  padding: 4px 8px;
-  background: var(--code-bg);
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.status-dot.online {
+  background-color: #10b981;
+}
+
+.status-dot.offline {
+  background-color: #f59e0b;
+}
+
+.pwa-toast {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  left: 1rem;
+  max-width: 420px;
+  margin-left: auto;
+  padding: 0.85rem 1rem;
+  border: 1px solid #cbd5e1;
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  z-index: 1080;
+  font-size: 0.9rem;
+}
+
+.pwa-toast .actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.login {
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: linear-gradient(160deg, var(--runa-green-dark), var(--runa-green));
+}
+
+@media print {
+  .sidebar,
+  .topbar,
+  .no-print {
+    display: none !important;
+  }
+
+  .app {
+    display: block;
+  }
+
+  body {
+    background: #fff;
+  }
 }
