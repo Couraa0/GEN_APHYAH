@@ -28,8 +28,11 @@ test('pengumpulan saat offline tersimpan di perangkat lalu tersinkron tepat satu
   await page.getByLabel('Password').fill('password-tes')
   await page.getByRole('button', { name: 'Masuk' }).click()
 
-  await page.getByLabel('Titik pengumpulan').selectOption(point.id)
-  await page.getByLabel('Kategori sampah').selectOption(category.id)
+  // Penanda menu aktif mengikuti halaman yang dibuka (Pengumpulan = menu kedua).
+  await expect(page.locator('.rail-menu')).toHaveAttribute('style', /--aktif:\s*1/)
+
+  await page.getByText('Titik 1', { exact: true }).click()
+  await page.getByText('Plastik', { exact: true }).click()
 
   // Koneksi putus: transaksi tetap bisa disimpan, belum ada yang terkirim.
   offline = true

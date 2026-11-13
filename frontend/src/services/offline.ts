@@ -56,6 +56,10 @@ export const queue = {
     const items = await run<QueueItem[]>('queue', 'readonly', (s) => s.getAll())
     return items.sort((a, b) => a.createdAt - b.createdAt)
   },
+  /** Tambah transaksi baru; id acaknya menjadi Idempotency-Key saat dikirim. */
+  add(path: string, body: Record<string, unknown>) {
+    return this.put({ id: crypto.randomUUID(), path, body, createdAt: Date.now() })
+  },
   async put(item: QueueItem) {
     await run('queue', 'readwrite', (s) => s.put(item))
     changed()

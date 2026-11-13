@@ -18,7 +18,7 @@ export function PlasticPage() {
 
   return (
     <>
-      <h1 className="h4 mb-3">Pilot Paving Block Plastik</h1>
+      <h1 className="mb-3">Pilot Paving Block Plastik</h1>
       <div className="alert alert-warning" role="note">
         Prototipe belum boleh dianggap layak dipakai atau dipasarkan sebelum lolos pengujian teknis
         dan keselamatan.
@@ -51,7 +51,7 @@ export function PlasticPage() {
         columns={[
           { label: 'Kode', render: (e) => e.code },
           { label: 'Waktu', render: (e) => dateTime(e.conductedAt) },
-          { label: 'Plastik', render: (e) => `${e.wasteCategory.name} · ${kg(e.plasticWeightKg)}` },
+          { label: 'Plastik', render: (e) => `${e.wasteCategory.name}, ${kg(e.plasticWeightKg)}` },
           { label: 'Prototipe', align: 'end', render: (e) => e.prototypeCount },
           { label: 'Mitra', render: (e) => e.partner ?? '-' },
           { label: 'Hasil pengujian', render: (e) => e.testResult ?? 'Belum diuji' },

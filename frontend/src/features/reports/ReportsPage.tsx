@@ -26,7 +26,7 @@ export function ReportsPage() {
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="h4 mb-0">Laporan & Dampak</h1>
+        <h1 className="mb-0">Laporan & Dampak</h1>
         <button className="btn btn-sm btn-outline-success no-print" onClick={() => window.print()}>
           Cetak / simpan PDF
         </button>

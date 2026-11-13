@@ -10,7 +10,7 @@ export function PickupsPage({ user }: { user: User }) {
 
   return (
     <>
-      <h1 className="h4 mb-3">Pengangkutan</h1>
+      <h1 className="mb-3">Pengangkutan</h1>
       <p className="text-secondary">
         Pengangkutan memindahkan material dari titik ke RUNA atau pengepul. Berat yang dipindahkan
         dicatat tersendiri dan tidak dihitung sebagai pengumpulan baru.

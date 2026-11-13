@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Card, Resource, StaleNote, Table } from '../../components/Resource'
+import { Card, Resource, StaleNote } from '../../components/Resource'
 import { useApi, useOptions } from '../../hooks/useApi'
 import type { Category, Movement, User } from '../../types'
 import { dateTime, kg, label, rupiah } from '../../utils/format'
@@ -9,23 +9,33 @@ export function InventoryPage({ user }: { user: User }) {
   const [refresh, setRefresh] = useState(0)
   const stock = useApi<Category[]>('/inventory', refresh)
   const categories = useOptions('/categories')
+  const maxStock = Math.max(...(stock.data ?? []).map((c) => Number(c.stockKg ?? 0)), 1)
 
   return (
     <>
-      <h1 className="h4 mb-3">Stok Material</h1>
+      <h1 className="mb-3">Stok Material</h1>
 
       <Card title="Stok saat ini">
         <StaleNote at={stock.cachedAt} error={stock.error} />
-        <Table
-          rows={stock.data}
-          columns={[
-            { label: 'Material', render: (c) => c.name },
-            { label: 'Kelompok', render: (c) => label(c.group) },
-            { label: 'Harga/kg', align: 'end', render: (c) => rupiah(c.pricePerKg) },
-            { label: 'Stok', align: 'end', render: (c) => <strong>{kg(c.stockKg)}</strong> },
-          ]}
-        />
-        <p className="form-text mb-0">
+        <ul className="batang-list">
+          {stock.data?.map((c) => (
+            <li key={c.id}>
+              <span>
+                <i className={`dot ${c.group}`} />
+                {c.name}{' '}
+                <small>
+                  {label(c.group)}
+                  {c.pricePerKg != null && `, ${rupiah(c.pricePerKg)}/kg`}
+                </small>
+              </span>
+              <strong>{kg(c.stockKg)}</strong>
+              <div className="meter" aria-hidden="true">
+                <div style={{ width: `${(Number(c.stockKg ?? 0) / maxStock) * 100}%` }} />
+              </div>
+            </li>
+          ))}
+        </ul>
+        <p className="form-text mb-0 mt-3">
           Stok dihitung dari riwayat pergerakan di bawah: masuk dari pengumpulan, keluar karena
           penjualan, pengolahan, atau penyesuaian.
         </p>

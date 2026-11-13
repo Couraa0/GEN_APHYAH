@@ -21,7 +21,7 @@ export function OrganicPage() {
   return (
     <>
       <div className="d-flex justify-content-between align-items-center mb-3">
-        <h1 className="h4 mb-0">Pilot Maggot BSF</h1>
+        <h1 className="mb-0">Pilot Maggot BSF</h1>
         {!adding && (
           <button className="btn btn-sm btn-success" onClick={() => setAdding(true)}>
             + Batch baru
@@ -57,7 +57,7 @@ export function OrganicPage() {
       {data?.map((batch) => (
         <Card
           key={batch.id}
-          title={`${batch.code} · ${label(batch.status)}`}
+          title={`Batch ${batch.code} (${label(batch.status)})`}
           actions={
             batch.status === 'ACTIVE' && (
               <button className="btn btn-sm btn-outline-secondary" onClick={() => void close(batch)}>
@@ -68,16 +68,16 @@ export function OrganicPage() {
         >
           <p className="small text-secondary">
             Mulai {dateTime(batch.startedAt)}
-            {batch.notes && ` · ${batch.notes}`}
+            {batch.notes && `. ${batch.notes}`}
           </p>
           <p>
-            Pakan <strong>{kg(totalKg(batch, 'FEEDING'))}</strong> · Panen larva{' '}
-            <strong>{kg(totalKg(batch, 'HARVEST'))}</strong> · Residu/frass{' '}
+            Pakan <strong>{kg(totalKg(batch, 'FEEDING'))}</strong>, panen larva{' '}
+            <strong>{kg(totalKg(batch, 'HARVEST'))}</strong>, residu/frass{' '}
             <strong>{kg(totalKg(batch, 'FRASS'))}</strong>
           </p>
 
           {batch.status === 'ACTIVE' && (
-            <div className="border rounded p-3 mb-3 bg-body-tertiary">
+            <div className="form-box">
               <Form
                 submitLabel="Tambah catatan"
                 fields={[

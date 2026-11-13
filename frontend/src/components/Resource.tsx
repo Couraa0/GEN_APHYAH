@@ -176,7 +176,7 @@ export function Table<T extends { id: string }>({
   if (!rows.length) return <p className="text-secondary mb-0">{empty}</p>
   return (
     <div className="table-responsive">
-      <table className="table table-sm align-middle mb-0">
+      <table className="table align-middle mb-0 table-stack">
         <thead>
           <tr>
             {columns.map((c) => (
@@ -190,7 +190,8 @@ export function Table<T extends { id: string }>({
           {rows.map((row) => (
             <tr key={row.id}>
               {columns.map((c) => (
-                <td key={c.label} className={c.align === 'end' ? 'text-end' : undefined}>
+                // data-label dipakai CSS untuk menampilkan nama kolom saat baris ditumpuk di ponsel
+                <td key={c.label} data-label={c.label} className={c.align === 'end' ? 'text-end' : undefined}>
                   {c.render(row)}
                 </td>
               ))}
@@ -220,14 +221,12 @@ export function StaleNote({ at, error }: { at?: number | null; error?: string })
 
 export function Card({ title, actions, children }: { title: string; actions?: ReactNode; children: ReactNode }) {
   return (
-    <section className="card shadow-sm mb-3">
-      <div className="card-body">
-        <div className="d-flex justify-content-between align-items-center gap-2 mb-3">
-          <h2 className="h5 mb-0">{title}</h2>
-          {actions}
-        </div>
-        {children}
+    <section className="panel">
+      <div className="panel-head">
+        <h2>{title}</h2>
+        {actions}
       </div>
+      {children}
     </section>
   )
 }
@@ -304,7 +303,7 @@ export function Resource<T extends { id: string }>({
     >
       <StaleNote at={cachedAt} error={error} />
       {adding && fields && (
-        <div className="border rounded p-3 mb-3 bg-body-tertiary">
+        <div className="form-box">
           <Form
             fields={fields}
             onSubmit={(payload) => api.post(createPath, payload).then(done)}
@@ -313,7 +312,7 @@ export function Resource<T extends { id: string }>({
         </div>
       )}
       {editing && editFields && (
-        <div className="border rounded p-3 mb-3 bg-body-tertiary">
+        <div className="form-box">
           <Form
             key={editing.id}
             fields={editFields}

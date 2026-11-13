@@ -40,7 +40,7 @@ export function MasterPage({ user }: { user: User }) {
 
   return (
     <>
-      <h1 className="h4 mb-3">Data Master</h1>
+      <h1 className="mb-3">Data Master</h1>
 
       <Resource<Household>
         title="Rumah tangga / nasabah"

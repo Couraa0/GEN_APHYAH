@@ -32,7 +32,7 @@ export function MarketplacePage({ user }: { user: User }) {
 
   return (
     <>
-      <h1 className="h4 mb-3">Circular Marketplace</h1>
+      <h1 className="mb-3">Circular Marketplace</h1>
 
       <Card title="Katalog material">
         <StaleNote at={listings.cachedAt} error={listings.error} />
@@ -90,7 +90,7 @@ export function MarketplacePage({ user }: { user: User }) {
             render: (r) => (
               <>
                 {label(r.status)}
-                {r.sale && <span className="text-secondary"> · {rupiah(r.sale.totalAmount)}</span>}
+                {r.sale && <span className="text-secondary"> ({rupiah(r.sale.totalAmount)})</span>}
               </>
             ),
           },

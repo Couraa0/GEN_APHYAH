@@ -8,11 +8,11 @@ test.describe('Frontend PWA E2E Test Suite', () => {
     await expect(page.getByLabel('Password')).toBeVisible()
   })
 
-  test('harus menampilkan badge PWA dan status online', async ({ page }) => {
+  test('harus menampilkan status online', async ({ page }) => {
     await page.goto('/')
     const pwaBadge = page.locator('.pwa-badge')
     await expect(pwaBadge).toBeVisible()
-    await expect(pwaBadge).toContainText(/PWA/)
+    await expect(pwaBadge).toContainText(/Online|Offline/)
   })
 
   test('harus memiliki link web manifest PWA yang terpasang', async ({ page }) => {

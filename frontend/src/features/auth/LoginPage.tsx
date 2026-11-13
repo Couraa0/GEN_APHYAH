@@ -19,7 +19,7 @@ export function LoginPage({ onLogin, isOnline }: { onLogin: (user: User) => void
     } catch (err) {
       setError(
         err instanceof TypeError
-          ? 'Tidak dapat terhubung ke server. Login membutuhkan internet.'
+          ? 'Tidak dapat terhubung ke server. Masuk membutuhkan internet.'
           : (err as Error).message,
       )
     } finally {
@@ -29,32 +29,30 @@ export function LoginPage({ onLogin, isOnline }: { onLogin: (user: User) => void
 
   return (
     <div className="login">
-      <form className="card shadow p-4 w-100" style={{ maxWidth: 380 }} onSubmit={submit}>
-        <div className="mb-3">
-          <StatusBadge isOnline={isOnline} />
-        </div>
-        <h1 className="h3 mb-0 title">RUNA Circular Integration</h1>
-        <p className="text-secondary">Bank Sampah RUNA · Desa Cibunian</p>
+      <form onSubmit={submit}>
+        <h1 className="title">RUNA</h1>
+        <p className="fw-semibold mb-1">Circular Integration</p>
+        <p className="text-secondary">Bank Sampah RUNA, Desa Cibunian</p>
 
-        <label className="form-label" htmlFor="username">
+        <label className="form-label fw-semibold" htmlFor="username">
           Username
         </label>
         <input
           id="username"
-          className="form-control mb-3"
+          className="form-control form-control-lg mb-3"
           autoComplete="username"
           autoCapitalize="none"
           required
           value={username}
           onChange={(e) => setUsername(e.target.value)}
         />
-        <label className="form-label" htmlFor="password">
+        <label className="form-label fw-semibold" htmlFor="password">
           Password
         </label>
         <input
           id="password"
           type="password"
-          className="form-control mb-3"
+          className="form-control form-control-lg mb-3"
           autoComplete="current-password"
           required
           value={password}
@@ -65,10 +63,18 @@ export function LoginPage({ onLogin, isOnline }: { onLogin: (user: User) => void
             {error}
           </div>
         )}
-        <button className="btn btn-success w-100" disabled={busy}>
+        <button className="btn btn-success btn-lg w-100 mb-3" disabled={busy}>
           {busy ? 'Masuk…' : 'Masuk'}
         </button>
+        <StatusBadge isOnline={isOnline} />
       </form>
+
+      {/* Perbukitan Cibunian: tiga lapis bukit, makin dekat makin gelap. */}
+      <svg className="bukit" viewBox="0 0 1440 320" preserveAspectRatio="none" aria-hidden="true">
+        <path fill="#d3e7d5" d="M0 150C220 70 430 95 660 150S1130 60 1440 130V320H0Z" />
+        <path fill="#86c08d" d="M0 215C210 150 400 175 620 215S1090 130 1440 195V320H0Z" />
+        <path fill="#0e5a36" d="M0 275C260 225 520 250 770 272S1210 215 1440 255V320H0Z" />
+      </svg>
     </div>
   )
 }
