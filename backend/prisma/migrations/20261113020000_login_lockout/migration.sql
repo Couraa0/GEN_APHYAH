@@ -1,0 +1,3 @@
+-- Pembatas percobaan login: hitungan password salah berturut-turut dan batas waktu kunci.
+ALTER TABLE "users" ADD COLUMN "failedLogins" INTEGER NOT NULL DEFAULT 0,
+ADD COLUMN "lockedUntil" TIMESTAMP(3);

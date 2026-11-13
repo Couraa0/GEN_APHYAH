@@ -92,6 +92,32 @@ describe('RUNA core flows (e2e)', () => {
     await http().get('/api/collections').expect(401);
   });
 
+  it('mengunci login sementara setelah 5 kali password salah', async () => {
+    await prisma.user.create({
+      data: {
+        name: 'kunci',
+        username: 'kunci',
+        role: 'PETUGAS',
+        passwordHash: await hashPassword('rahasia-tes-123'),
+      },
+    });
+    const login = (password: string) =>
+      http().post('/api/auth/login').send({ username: 'kunci', password });
+
+    for (let i = 0; i < 5; i++) await login('salah').expect(401);
+    // Terkunci: password yang benar pun ditolak.
+    await login('rahasia-tes-123').expect(429);
+
+    // Setelah masa kunci lewat, login berhasil dan hitungannya kembali nol.
+    await prisma.user.update({
+      where: { username: 'kunci' },
+      data: { lockedUntil: new Date(Date.now() - 1000) },
+    });
+    await login('rahasia-tes-123').expect(200);
+    const user = await prisma.user.findUniqueOrThrow({ where: { username: 'kunci' } });
+    expect([user.failedLogins, user.lockedUntil]).toEqual([0, null]);
+  });
+
   it('membatasi akses sesuai role', async () => {
     await http()
       .post('/api/sales')

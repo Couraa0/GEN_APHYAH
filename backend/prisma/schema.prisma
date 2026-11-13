@@ -78,6 +78,9 @@ model User {
   // Hanya untuk role MITRA: akun ini mewakili pembeli yang mana.
   buyerId      String?  @db.Uuid
   buyer        Buyer?   @relation(fields: [buyerId], references: [id])
+  // Pembatas percobaan login: password salah berturut-turut, dan sampai kapan login dikunci.
+  failedLogins Int      @default(0)
+  lockedUntil  DateTime?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 

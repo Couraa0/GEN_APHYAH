@@ -29,6 +29,10 @@ Lalu jalankan `npm run dev:backend` dan `npm run dev:frontend` dari root, buka `
 
 **Deploy backend ke Vercel** butuh environment variable tambahan: `DATABASE_URL` (PostgreSQL ter-host), `JWT_SECRET`, `IOT_DEVICE_KEY`, dan `CORS_ORIGIN` (URL frontend). Jalankan `npm run db:migrate` terhadap database produksi sebelum dipakai.
 
+**Supabase sebagai database:** isi `DATABASE_URL` dengan Transaction pooler (port 6543) dan `DIRECT_URL` dengan Session pooler (port 5432); contohnya ada di `backend/.env.example`. Backend memakai login sendiri (JWT), jadi Supabase Auth dan `supabase-js` tidak dipakai. Data API Supabase ditutup lewat migrasi: semua tabel diberi RLS tanpa policy, dan izin peran `anon`, `authenticated`, serta `service_role` dicabut (termasuk untuk tabel yang dibuat nanti).
+
+**Pembatas login:** lima kali password salah berturut-turut mengunci login akun itu selama 15 menit (`MAX_FAILED_LOGINS` dan `LOCK_MINUTES` di `backend/src/auth/auth.controller.ts`). Hitungannya disimpan di tabel `users`, jadi tetap berlaku di Vercel serverless.
+
 ---
 
 ## 🏛️ Arsitektur Sistem

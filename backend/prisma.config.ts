@@ -10,5 +10,7 @@ try {
 export default defineConfig({
   schema: 'prisma/schema.prisma',
   migrations: { path: 'prisma/migrations' },
-  datasource: { url: process.env.DATABASE_URL ?? '' },
+  // Hanya dipakai CLI Prisma (migrasi). Di Supabase, DATABASE_URL memakai transaction pooler
+  // (port 6543) yang tidak cocok untuk migrasi, jadi DIRECT_URL (session pooler, 5432) didahulukan.
+  datasource: { url: process.env.DIRECT_URL ?? process.env.DATABASE_URL ?? '' },
 });
